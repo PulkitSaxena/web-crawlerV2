@@ -1,0 +1,29 @@
+{
+  "name": "web-crawlerv2",
+  "version": "1.0.0",
+  "description": "A web crawler to identify all the hyperlinks and create a CSV for a given URL in nodejs without using any sync lib",
+  "main": "master.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PulkitSaxena/web-crawlerV2.git"
+  },
+  "keywords": [
+    "web",
+    "crawler",
+    "nodejs"
+  ],
+  "author": "Pulkit Saxena",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PulkitSaxena/web-crawlerV2/issues"
+  },
+  "homepage": "https://github.com/PulkitSaxena/web-crawlerV2#readme",
+  "dependencies": {
+    "cheerio": "^0.22.0",
+    "requestify": "^0.2.5",
+    "url-parse": "^1.1.7"
+  }
+}
