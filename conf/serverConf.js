@@ -4,8 +4,8 @@ var CONF = {
 
   APP_NAME                  : 'WEB CRAWLER: ',
 
-  // URL to crawl upon https://medium.com/
-  URL                       : 'http://www.smallsites.com/',
+  // URL to crawl upon
+  URL                       : 'https://medium.com/',
 
   // number of concurrent requests allowed to URL
   MAX_CONCURRENT_REQUESTS   : 5,

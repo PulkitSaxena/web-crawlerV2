@@ -21,9 +21,9 @@ function Crawler(config){
   this._url                 = this._config['URL'],
   this._anchorElement       = this._config['ELEMENTS']['ANCHOR'],
   this._origin              = new URL_PARSER(this._url).origin,
-//  this._boundedCrawlUrl     = this._crawlUrl.bind(this),
   this._linksToVisit        = [],
   this._visitedLinks        = [],
+  this._currentConcurrency  = 0,
   this._requestify          = REQUESTIFY
 
 }
@@ -46,7 +46,7 @@ Crawler.prototype.startCrawling               = function(){
 },
 
 /**
- * This defines the action corresponding to a task in the async queue of visiting
+ * This defines the
  * a link
  * param@{Object} task
  * param@{function} callback
@@ -61,25 +61,33 @@ Crawler.prototype._crawl                   =  function(){
 
     this._requestify.get(url)
         .then(function (response) {
-           console.log("Visiting:" + url + " Tasks left:" + self._linksToVisit.length);
+
            // parsing the body of the requsted url page
            self._parseBody(response.getBody());
+
+           console.log("Visiting:" + url + " Tasks left:" + self._linksToVisit.length);
+
+           // maintain the concurrency level
+           self._maintainConcurrency();
 
         })
         .catch(function (error) {
             if(error)
               console.log(self._config['ERROR_VISITING'] + url);
-            self._crawl();
+
+            // as current request completed , So decrease concurrency level by one
+            self._decreaseConcurrencyCount();
+
+            // even if a link is not accessable due to any reason, we still need to continue
+            self._maintainConcurrency();
         });
-  }
-  else {
-    self._stopCrawling();
+
   }
 
 },
 
 /**
-* parses the body of the body of the link visited
+* parses the body of the link visited
 * @param {Object} body
 */
 
@@ -97,13 +105,35 @@ Crawler.prototype._parseBody                  = function(body){
       self._pushNewUrlInQueue($(this).attr('href'));
   });
 
-  // now again calling the crawl function
-  self._crawl();
+  // as current request completed , So decrease concurrency level by one
+  self._decreaseConcurrencyCount();
 
 },
 
 /**
-* Initializes the whole async queue with the first task of link to start with
+* parses the body of the link visited
+* @param {Object} body
+*/
+
+Crawler.prototype._maintainConcurrency        = function(){
+
+  // checking for the condition when we need to stop the whole crawling process
+  if(this._currentConcurrency == 0 && this._linksToVisit.length == 0){
+    this._stopCrawling();
+  }
+
+  // increase the concurrency upto the desired level
+  while(this._currentConcurrency < this._concurrencyRate && this._linksToVisit.length > 0){
+
+    this._increaseConcurrencyCount();
+    this._crawl();
+
+  }
+
+},
+
+/**
+* Initializes the whole system with the first task of link to start with
 */
 
 Crawler.prototype._start            = function(){
@@ -117,6 +147,9 @@ Crawler.prototype._start            = function(){
 
     // pushing the first task
     this._pushNewUrlInQueue(this._url);
+
+    // increase the concurrency count
+    this._increaseConcurrencyCount();
 
     // crawl the link
     this._crawl();
@@ -143,6 +176,22 @@ Crawler.prototype._pushNewUrlInQueue           = function(link){
     this._visitedLinks.push(link);
   }
 
+},
+
+/**
+* Increases the request concurrency count by one
+*/
+
+Crawler.prototype._increaseConcurrencyCount   = function(){
+  this._currentConcurrency ++;
+},
+
+/**
+* Decreases the request concurrency count by one
+*/
+
+Crawler.prototype._decreaseConcurrencyCount   = function(){
+  this._currentConcurrency --;
 },
 
 /**
